@@ -1,5 +1,6 @@
-import { DataType, Model, Table, Column } from 'sequelize-typescript';
+import { DataType, Model, Table, Column, HasMany } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
+import { File } from 'files/files.model';
 
 interface UserCreationAttrs {
   email: string;
@@ -31,4 +32,7 @@ export class User extends Model<User, UserCreationAttrs> {
     allowNull: false,
   })
   password: string;
+
+  @HasMany(() => File)
+  files: File[];
 }
