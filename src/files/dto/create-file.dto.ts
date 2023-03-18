@@ -11,6 +11,9 @@ export class CreateFileDto {
   @IsString({ message: 'Must be a string' })
   readonly type: string;
 
+  @IsString({ message: 'Must be a string' })
+  readonly format: string;
+
   @IsNumber({}, { message: 'Must be a number' })
   readonly userId: number;
 
@@ -19,5 +22,5 @@ export class CreateFileDto {
   readonly parentId: number | null;
 
   @IsOptional()
-  readonly childIds: number[];
+  readonly childIds: number[] | [];
 }

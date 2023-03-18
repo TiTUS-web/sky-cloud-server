@@ -11,6 +11,7 @@ interface FileCreationAttrs {
   id: number;
   name: string;
   type: string;
+  format: string;
   userId: number;
   parentId: number;
 }
@@ -36,6 +37,12 @@ export class File extends Model<File, FileCreationAttrs> {
     allowNull: false,
   })
   type: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  format: string;
 
   @Column({
     type: DataType.STRING,

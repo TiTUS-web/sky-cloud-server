@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from 'pipes/validation.pipe';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+const fileUpload = require('express-fileupload');
 
 async function start() {
   const PORT = process.env.PORT || 9000;
@@ -18,6 +19,7 @@ async function start() {
   SwaggerModule.setup('/api/docs', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
+  app.use(fileUpload({}));
 
   await app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 }
