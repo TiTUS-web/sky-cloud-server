@@ -27,4 +27,14 @@ export class FilesController {
   getFiles() {
     return this.filesService.getFiles();
   }
+
+  @Post('/upload/:id')
+  uploadFile(@Body() fileDto: CreateFileDto) {
+    return this.filesService.uploadFile(fileDto).catch(() => {
+      throw new HttpException(
+        'File upload error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    });
+  }
 }

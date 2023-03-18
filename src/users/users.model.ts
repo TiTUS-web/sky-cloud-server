@@ -35,4 +35,10 @@ export class User extends Model<User, UserCreationAttrs> {
 
   @HasMany(() => File)
   files: File[];
+
+  @Column({ type: DataType.BIGINT, defaultValue: 1024 ** 3 * 10 })
+  diskSpace: bigint;
+
+  @Column({ type: DataType.BIGINT, defaultValue: 0 })
+  usedSpace: bigint;
 }
