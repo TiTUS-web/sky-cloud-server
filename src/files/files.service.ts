@@ -72,4 +72,31 @@ export class FilesService {
 
     return file;
   }
+
+  async deleteFile(dto: CreateFileDto) {
+    const { id } = dto;
+    const file = await File.findOne({ where: { id: id } });
+
+    const parentFile = await File.findOne({ where: { id: file.parentId } });
+
+    const path = parentFile
+      ? this.getPath(file, parentFile)
+      : this.getPath(file);
+
+    if (file.type === 'dir') {
+      fs.rmdirSync(path);
+    } else {
+      fs.unlinkSync(path);
+    }
+
+    await file.destroy();
+  }
+
+  getPath(file: File, parentFile?: File) {
+    if (parentFile) {
+      return `${process.env.FILE_PATH}/USER ${file.userId}/${parentFile.path}/${file.name}${file.format}`;
+    } else {
+      return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}${file.format}`;
+    }
+  }
 }

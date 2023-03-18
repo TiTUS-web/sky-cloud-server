@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -33,6 +34,16 @@ export class FilesController {
     return this.filesService.uploadFile(fileDto).catch(() => {
       throw new HttpException(
         'File upload error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    });
+  }
+
+  @Delete('/delete/:id')
+  deleteFile(@Body() fileDto: CreateFileDto) {
+    return this.filesService.deleteFile(fileDto).catch(() => {
+      throw new HttpException(
+        'File delete error',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     });
