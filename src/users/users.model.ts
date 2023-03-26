@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { File } from 'files/files.model';
 
 interface UserCreationAttrs {
+  username: string;
   email: string;
   password: string;
 }
@@ -17,6 +18,13 @@ export class User extends Model<User, UserCreationAttrs> {
     primaryKey: true,
   })
   id: number;
+
+  @ApiProperty({ example: 'TiTUS', description: 'User name' })
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  username: string;
 
   @ApiProperty({ example: 'user@mail.ru', description: 'User mail' })
   @Column({
