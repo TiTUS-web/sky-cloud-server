@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { CorsMiddleware } from '@nest-middlewares/cors';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigModule } from '@nestjs/config';
 import { User } from 'users/users.model';
@@ -27,4 +28,8 @@ import { File } from 'files/files.model';
     FilesModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(CorsMiddleware).forRoutes('*');
+  }
+}

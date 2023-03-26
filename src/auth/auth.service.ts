@@ -19,7 +19,11 @@ export class AuthService {
 
   async login(userDto: CreateUserDto) {
     const user = await this.validateUser(userDto);
-    return this.generateToken(user);
+
+    return {
+      token: await this.generateToken(user),
+      user,
+    };
   }
 
   async registration(userDto: CreateUserDto) {
@@ -40,15 +44,20 @@ export class AuthService {
       password: hashPassword,
     });
 
-    return this.generateToken(user);
+    return {
+      token: await this.generateToken(user),
+      user,
+    };
   }
 
   private async generateToken(user: User) {
-    const payload = { emai: user.email, id: user.id };
+    const payload = { email: user.email, id: user.id };
 
-    return {
-      token: this.jwtService.sign(payload, { secret: process.env.PRIVATE_KEY }),
-    };
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.PRIVATE_KEY,
+    });
+
+    return token;
   }
 
   private async validateUser(userDto: CreateUserDto) {
