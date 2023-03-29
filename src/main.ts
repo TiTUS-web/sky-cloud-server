@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 const fileUpload = require('express-fileupload');
 
 async function start() {
-  const PORT = process.env.PORT || 9000;
+  const PORT = process.env.PORT;
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
