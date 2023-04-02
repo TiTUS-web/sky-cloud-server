@@ -16,7 +16,7 @@ export class FilesService {
     const file = new File({ id, name, type, format, userId, parentId });
 
     const parentFile = await File.findOne({ where: { id: file.parentId } });
-    const parentChildsIds = parentFile.childIds;
+    const parentChildsIds = parentFile ? parentFile.childIds : [];
 
     file.path = parentFile ? `${parentFile.path}/${file.name}` : file.name;
 
