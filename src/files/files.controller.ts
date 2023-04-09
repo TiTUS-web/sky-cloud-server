@@ -15,7 +15,7 @@ export class FilesController {
   constructor(private filesService: FilesService) {}
 
   @Post()
-  async createFile(@Body() fileDto: CreateFileDto) {
+  async createFile(@Body() fileDto: CreateFileDto): Promise<any> {
     return this.filesService.createFile(fileDto).catch(() => {
       throw new HttpException(
         'An error occurred while writing the file',
@@ -40,7 +40,7 @@ export class FilesController {
   }
 
   @Delete('/delete/:id')
-  deleteFile(@Body() fileDto: CreateFileDto) {
+  deleteFile(@Body() fileDto: CreateFileDto): Promise<void> {
     return this.filesService.deleteFile(fileDto).catch(() => {
       throw new HttpException(
         'File delete error',

@@ -7,18 +7,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersService {
   constructor(@InjectModel(User) private usersRepository: typeof User) {}
 
-  async createUser(dto: CreateUserDto) {
-    const user = await this.usersRepository.create(dto);
+  async createUser(dto: CreateUserDto): Promise<User> {
+    const user: User = await this.usersRepository.create(dto);
     return user;
   }
 
-  async getUsers() {
-    const users = await this.usersRepository.findAll();
+  async getUsers(): Promise<User[]> {
+    const users: User[] = await this.usersRepository.findAll();
     return users;
   }
 
-  async getUserByEmail(email: string) {
-    const user = await this.usersRepository.findOne({ where: { email } });
+  async getUserByEmail(email: string): Promise<User> {
+    const user: User = await this.usersRepository.findOne({ where: { email } });
     return user;
   }
 }
