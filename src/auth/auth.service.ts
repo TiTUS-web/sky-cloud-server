@@ -9,6 +9,7 @@ import { UsersService } from 'users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'users/users.model';
 import { JwtService } from '@nestjs/jwt';
+import { TAuthResponse } from '../types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -17,8 +18,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(userDto: CreateUserDto) {
-    const user = await this.validateUser(userDto);
+  async login(userDto: CreateUserDto): Promise<TAuthResponse> {
+    const user: User = await this.validateUser(userDto);
 
     return {
       token: await this.generateToken(user),
@@ -26,8 +27,8 @@ export class AuthService {
     };
   }
 
-  async registration(userDto: CreateUserDto) {
-    const currentUserByEmail = await this.userService.getUserByEmail(
+  async registration(userDto: CreateUserDto): Promise<TAuthResponse> {
+    const currentUserByEmail: User = await this.userService.getUserByEmail(
       userDto.email,
     );
 
@@ -39,7 +40,7 @@ export class AuthService {
     }
 
     const hashPassword = await bcrypt.hash(userDto.password, 5);
-    const user = await this.userService.createUser({
+    const user: User = await this.userService.createUser({
       ...userDto,
       password: hashPassword,
     });
@@ -50,17 +51,17 @@ export class AuthService {
     };
   }
 
-  private async generateToken(user: User) {
+  private async generateToken(user: User): Promise<string> {
     const payload = { email: user.email, id: user.id };
 
-    const token = this.jwtService.sign(payload, {
+    const token: string = this.jwtService.sign(payload, {
       secret: process.env.PRIVATE_KEY,
     });
 
     return token;
   }
 
-  private async validateUser(userDto: CreateUserDto) {
+  private async validateUser(userDto: CreateUserDto): Promise<User> {
     const user = await this.userService.getUserByEmail(userDto.email);
     const passwordEquals = await bcrypt.compare(
       userDto.password,

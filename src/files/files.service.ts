@@ -11,12 +11,16 @@ import * as path from 'path';
 export class FilesService {
   constructor(@InjectModel(File) private fileRepository: typeof File) {}
 
-  async createFile(dto: CreateFileDto) {
+  async createFile(dto: CreateFileDto): Promise<File> {
     const { id, name, type, format, userId, parentId } = dto;
-    const file = new File({ id, name, type, format, userId, parentId });
+    const file: File = new File({ id, name, type, format, userId, parentId });
 
-    const parentFile = await File.findOne({ where: { id: file.parentId } });
-    const parentChildsIds = parentFile ? parentFile.childIds : [];
+    const parentFile: File = await File.findOne({
+      where: { id: file.parentId },
+    });
+    const parentChildsIds: number[] | [] = parentFile
+      ? parentFile.childIds
+      : [];
 
     file.path = parentFile ? `${parentFile.path}/${file.name}` : file.name;
 
@@ -34,19 +38,21 @@ export class FilesService {
     return file;
   }
 
-  async getFiles() {
-    const files = await this.fileRepository.findAll();
+  async getFiles(): Promise<File[]> {
+    const files: File[] = await this.fileRepository.findAll();
     return files;
   }
 
-  async uploadFile(dto: CreateFileDto) {
+  async uploadFile(dto: CreateFileDto): Promise<fileUpload.UploadFile> {
     const { id } = dto;
-    const file = (await File.findOne({
+    const file: fileUpload.UploadFile = (await File.findOne({
       where: { id: id },
     })) as fileUpload.UploadFile;
 
-    const parentFile = await File.findOne({ where: { id: file.parentId } });
-    const user = await User.findOne({ where: { id: file.userId } });
+    const parentFile: File = await File.findOne({
+      where: { id: file.parentId },
+    });
+    const user: User = await User.findOne({ where: { id: file.userId } });
 
     if (user.usedSpace + file.size > user.diskSpace) {
       throw new HttpException('No disk space', HttpStatus.BAD_REQUEST);
@@ -56,7 +62,7 @@ export class FilesService {
 
     // TODO You need to pass the current file path
     const oldPath = file.currentPath;
-    const newPath = parentFile
+    const newPath: string = parentFile
       ? `${process.env.FILE_PATH}/USER ${user.id}/${parentFile.path}/${file.name}${file.format}`
       : `${process.env.FILE_PATH}/USER ${user.id}/${file.name}${file.format}`;
 
@@ -73,13 +79,15 @@ export class FilesService {
     return file;
   }
 
-  async deleteFile(dto: CreateFileDto) {
+  async deleteFile(dto: CreateFileDto): Promise<void> {
     const { id } = dto;
-    const file = await File.findOne({ where: { id: id } });
+    const file: File = await File.findOne({ where: { id: id } });
 
-    const parentFile = await File.findOne({ where: { id: file.parentId } });
+    const parentFile: File = await File.findOne({
+      where: { id: file.parentId },
+    });
 
-    const path = parentFile
+    const path: string = parentFile
       ? this.getPath(file, parentFile)
       : this.getPath(file);
 
@@ -92,7 +100,7 @@ export class FilesService {
     await file.destroy();
   }
 
-  getPath(file: File, parentFile?: File) {
+  getPath(file: File, parentFile?: File): string {
     if (parentFile) {
       return `${process.env.FILE_PATH}/USER ${file.userId}/${parentFile.path}/${file.name}${file.format}`;
     } else {

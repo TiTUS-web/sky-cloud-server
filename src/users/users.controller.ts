@@ -13,7 +13,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Creating a user' })
   @ApiResponse({ status: 200, type: User })
   @Post()
-  createUser(@Body() userDto: CreateUserDto) {
+  createUser(@Body() userDto: CreateUserDto): Promise<User> {
     return this.usersService.createUser(userDto);
   }
 
