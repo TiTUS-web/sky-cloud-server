@@ -43,8 +43,7 @@ export class FilesService {
     return files;
   }
 
-  async uploadFile(dto: CreateFileDto): Promise<fileUpload.UploadFile> {
-    const { id } = dto;
+  async uploadFile(id: number): Promise<fileUpload.UploadFile> {
     const file: fileUpload.UploadFile = (await File.findOne({
       where: { id: id },
     })) as fileUpload.UploadFile;
@@ -62,9 +61,7 @@ export class FilesService {
 
     // TODO You need to pass the current file path
     const oldPath = file.currentPath;
-    const newPath: string = parentFile
-      ? `${process.env.FILE_PATH}/USER ${user.id}/${parentFile.path}/${file.name}${file.format}`
-      : `${process.env.FILE_PATH}/USER ${user.id}/${file.name}${file.format}`;
+    const newPath: string = this.getPath(file, parentFile);
 
     if (fs.existsSync(newPath)) {
       throw new HttpException('File already exist', HttpStatus.BAD_REQUEST);
@@ -79,17 +76,14 @@ export class FilesService {
     return file;
   }
 
-  async deleteFile(dto: CreateFileDto): Promise<void> {
-    const { id } = dto;
+  async deleteFile(id: number): Promise<string> {
     const file: File = await File.findOne({ where: { id: id } });
 
     const parentFile: File = await File.findOne({
       where: { id: file.parentId },
     });
 
-    const path: string = parentFile
-      ? this.getPath(file, parentFile)
-      : this.getPath(file);
+    const path: string = this.getPath(file, parentFile);
 
     if (file.type === 'dir') {
       fs.rmdirSync(path);
@@ -97,14 +91,22 @@ export class FilesService {
       fs.unlinkSync(path);
     }
 
-    await file.destroy();
+    await File.destroy({
+      where: { id: file.id },
+    });
+
+    return file.name;
   }
 
-  getPath(file: File, parentFile?: File): string {
+  getPath(file: File, parentFile: File): string {
     if (parentFile) {
-      return `${process.env.FILE_PATH}/USER ${file.userId}/${parentFile.path}/${file.name}${file.format}`;
+      return `${process.env.FILE_PATH}/USER ${file.userId}/${parentFile.path}/${file.name}.${file.format}`;
     } else {
-      return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}${file.format}`;
+      if (file.format === 'dir') {
+        return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}`;
+      } else {
+        return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}.${file.format}`;
+      }
     }
   }
 }

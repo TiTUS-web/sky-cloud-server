@@ -5,6 +5,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Post,
 } from '@nestjs/common';
 import { CreateFileDto } from './dto/create-file.dto';
@@ -30,8 +31,8 @@ export class FilesController {
   }
 
   @Post('/upload/:id')
-  uploadFile(@Body() fileDto: CreateFileDto) {
-    return this.filesService.uploadFile(fileDto).catch(() => {
+  uploadFile(@Param() param) {
+    return this.filesService.uploadFile(param.id).catch(() => {
       throw new HttpException(
         'File upload error',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -40,8 +41,8 @@ export class FilesController {
   }
 
   @Delete('/delete/:id')
-  deleteFile(@Body() fileDto: CreateFileDto): Promise<void> {
-    return this.filesService.deleteFile(fileDto).catch(() => {
+  deleteFile(@Param() param): Promise<string> {
+    return this.filesService.deleteFile(param.id).catch(() => {
       throw new HttpException(
         'File delete error',
         HttpStatus.INTERNAL_SERVER_ERROR,
