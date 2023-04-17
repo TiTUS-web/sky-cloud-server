@@ -41,7 +41,8 @@ export class AuthService {
       );
     }
 
-    const hashPassword = await bcrypt.hash(userDto.password, 5);
+    const validatedPassword: string = this.validatePassword(userDto.password);
+    const hashPassword = await bcrypt.hash(validatedPassword, 5);
     const user: User = await this.userService.createUser({
       ...userDto,
       password: hashPassword,
@@ -87,5 +88,24 @@ export class AuthService {
       updatedAt: user.updatedAt,
       usedSpace: user.usedSpace,
     };
+  }
+
+  private validatePassword(password: string): string {
+    if (!password) {
+      throw new HttpException('Password is required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (
+      new RegExp(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/).test(
+        password,
+      )
+    ) {
+      return password;
+    } else {
+      throw new HttpException(
+        'The password must contain at least an uppercase letter, a lowercase letter, and at least one digit or special character',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
