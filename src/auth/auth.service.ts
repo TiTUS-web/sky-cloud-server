@@ -9,7 +9,7 @@ import { UsersService } from 'users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { User } from 'users/users.model';
 import { JwtService } from '@nestjs/jwt';
-import { TAuthResponse } from '../types/auth.types';
+import { TAuthResponse, TUserProtected } from '../types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -18,12 +18,14 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(userDto: CreateUserDto): Promise<TAuthResponse> {
+  async login(
+    userDto: CreateUserDto,
+  ): Promise<{ user: TUserProtected; token: string }> {
     const user: User = await this.validateUser(userDto);
 
     return {
       token: await this.generateToken(user),
-      user,
+      user: this.getUserProtected(user),
     };
   }
 
@@ -47,7 +49,7 @@ export class AuthService {
 
     return {
       token: await this.generateToken(user),
-      user,
+      user: this.getUserProtected(user),
     };
   }
 
@@ -73,5 +75,17 @@ export class AuthService {
     }
 
     throw new UnauthorizedException({ massage: 'Incorrect email or password' });
+  }
+
+  private getUserProtected(user): TUserProtected {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.createdAt,
+      diskSpace: user.diskSpace,
+      updatedAt: user.updatedAt,
+      usedSpace: user.usedSpace,
+    };
   }
 }

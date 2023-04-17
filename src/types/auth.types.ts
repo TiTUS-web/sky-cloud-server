@@ -1,6 +1,14 @@
-import { User } from '../users/users.model';
-
 export type TAuthResponse = {
   token: string;
-  user: User;
+  user: TUserProtected;
+};
+
+export type TUserProtected = {
+  id: number;
+  email: string;
+  username: string;
+  diskSpace: bigint;
+  usedSpace: bigint;
+  createdAt: string;
+  updatedAt: string;
 };
