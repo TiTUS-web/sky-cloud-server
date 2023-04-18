@@ -1,5 +1,13 @@
 import { CreateUserDto } from './dto/create-user.dto';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { User } from './users.model';
@@ -14,7 +22,9 @@ export class UsersController {
   @ApiResponse({ status: 200, type: User })
   @Post()
   createUser(@Body() userDto: CreateUserDto): Promise<User> {
-    return this.usersService.createUser(userDto);
+    return this.usersService.createUser(userDto).catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    });
   }
 
   @ApiOperation({ summary: 'Getting all users' })
@@ -22,6 +32,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get()
   getUsers() {
-    return this.usersService.getUsers();
+    return this.usersService.getUsers().catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    });
   }
 }

@@ -8,7 +8,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { CreateFileDto } from './dto/create-file.dto';
+import { CreateDirDto } from './dto/create-dir.dto';
 import { FilesService } from './files.service';
 
 @Controller('files')
@@ -16,37 +16,30 @@ export class FilesController {
   constructor(private filesService: FilesService) {}
 
   @Post()
-  async createFile(@Body() fileDto: CreateFileDto): Promise<any> {
-    return this.filesService.createFile(fileDto).catch(() => {
-      throw new HttpException(
-        'An error occurred while writing the file',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+  async createDir(@Body() fileDto: CreateDirDto): Promise<any> {
+    return this.filesService.createDir(fileDto).catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }
 
   @Get()
   getFiles() {
-    return this.filesService.getFiles();
+    return this.filesService.getFiles().catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    });
   }
 
   @Post('/upload/:id')
   uploadFile(@Param() param) {
-    return this.filesService.uploadFile(param.id).catch(() => {
-      throw new HttpException(
-        'File upload error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    return this.filesService.uploadFile(param.id).catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }
 
   @Delete('/delete/:id')
   deleteFile(@Param() param): Promise<string> {
-    return this.filesService.deleteFile(param.id).catch(() => {
-      throw new HttpException(
-        'File delete error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    return this.filesService.deleteFile(param.id).catch((err) => {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }
 }
