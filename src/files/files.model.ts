@@ -12,6 +12,8 @@ interface FileCreationAttrs {
   name: string;
   type: string;
   format: string;
+  access: string;
+  path: string;
   userId: number;
   parentId: number;
 }
@@ -46,20 +48,21 @@ export class File extends Model<File, FileCreationAttrs> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
-  accessLink: string;
+  path: string;
+
+  @Column({
+    type: DataType.STRING,
+    defaultValue: 'public',
+  })
+  access: string;
 
   @Column({
     type: DataType.INTEGER,
     defaultValue: 0,
   })
   size: number;
-
-  @Column({
-    type: DataType.STRING,
-    defaultValue: '',
-  })
-  path: string;
 
   @Column({
     type: DataType.DATE,
@@ -74,7 +77,4 @@ export class File extends Model<File, FileCreationAttrs> {
   @ForeignKey(() => File)
   @Column({ type: DataType.INTEGER, defaultValue: null })
   parentId: number;
-
-  @Column({ type: DataType.ARRAY(DataType.INTEGER), defaultValue: [] })
-  childIds: number[];
 }

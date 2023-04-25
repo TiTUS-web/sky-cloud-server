@@ -1,41 +1,44 @@
-import { CreateFileDto } from './dto/create-file.dto';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CreateDirDto } from './dto/create-dir.dto';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { File } from './files.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../users/users.model';
-const fs = require('fs');
 import fileUpload from 'express-fileupload';
-import * as path from 'path';
+
+const fs = require('fs');
 
 @Injectable()
 export class FilesService {
   constructor(@InjectModel(File) private fileRepository: typeof File) {}
 
-  async createFile(dto: CreateFileDto): Promise<File> {
-    const { id, name, type, format, userId, parentId } = dto;
-    const file: File = new File({ id, name, type, format, userId, parentId });
-
-    const parentFile: File = await File.findOne({
-      where: { id: file.parentId },
+  async createDir(dto: CreateDirDto): Promise<File> {
+    const { id, name, type, format, path, access, userId, parentId } = dto;
+    const file: File = new File({
+      id,
+      name,
+      type,
+      format,
+      path,
+      access,
+      userId,
+      parentId,
     });
-    const parentChildsIds: number[] | [] = parentFile
-      ? parentFile.childIds
-      : [];
 
-    file.path = parentFile ? `${parentFile.path}/${file.name}` : file.name;
+    const existingDirectory: File = await this.checkExistingDirectory(
+      file.name,
+    );
 
-    await file.save();
-
-    if (parentFile) {
-      // TODO It must be null, because sequelize cannot track changes in the array
-      parentFile.childIds = null;
-      parentFile.childIds = parentChildsIds;
-      parentFile.childIds.push(file.id);
-
-      await parentFile.save();
+    if (existingDirectory) {
+      throw new ConflictException('Directory name already exists');
     }
 
-    return file;
+    await file.save();
+    return await this.uploadFile(file.id);
   }
 
   async getFiles(): Promise<File[]> {
@@ -48,9 +51,6 @@ export class FilesService {
       where: { id: id },
     })) as fileUpload.UploadFile;
 
-    const parentFile: File = await File.findOne({
-      where: { id: file.parentId },
-    });
     const user: User = await User.findOne({ where: { id: file.userId } });
 
     if (user.usedSpace + file.size > user.diskSpace) {
@@ -58,17 +58,13 @@ export class FilesService {
     }
 
     user.usedSpace = user.usedSpace + file.size;
+    const path: string = this.getPath(file.userId, file.path);
 
-    // TODO You need to pass the current file path
-    const oldPath = file.currentPath;
-    const newPath: string = this.getPath(file, parentFile);
-
-    if (fs.existsSync(newPath)) {
+    if (fs.existsSync(path)) {
       throw new HttpException('File already exist', HttpStatus.BAD_REQUEST);
     }
 
-    fs.mkdirSync(path.dirname(newPath), { recursive: true });
-    fs.renameSync(oldPath, newPath);
+    fs.mkdirSync(path, { recursive: true });
 
     file.save();
     user.save();
@@ -79,11 +75,7 @@ export class FilesService {
   async deleteFile(id: number): Promise<string> {
     const file: File = await File.findOne({ where: { id: id } });
 
-    const parentFile: File = await File.findOne({
-      where: { id: file.parentId },
-    });
-
-    const path: string = this.getPath(file, parentFile);
+    const path: string = this.getPath(file.userId, file.path);
 
     if (file.type === 'dir') {
       fs.rmdirSync(path);
@@ -98,15 +90,15 @@ export class FilesService {
     return file.name;
   }
 
-  getPath(file: File, parentFile: File): string {
-    if (parentFile) {
-      return `${process.env.FILE_PATH}/USER ${file.userId}/${parentFile.path}/${file.name}.${file.format}`;
-    } else {
-      if (file.format === 'dir') {
-        return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}`;
-      } else {
-        return `${process.env.FILE_PATH}/USER ${file.userId}/${file.name}.${file.format}`;
-      }
-    }
+  private getPath(userId: number, path: string): string {
+    return `files/USER ${userId}${path}`;
+  }
+
+  private async checkExistingDirectory(sFilename: string): Promise<File> {
+    const file: File = await File.findOne({
+      where: { name: sFilename },
+    });
+
+    return file;
   }
 }
