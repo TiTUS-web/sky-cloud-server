@@ -41,6 +41,11 @@ export class AuthService {
       );
     }
 
+    throw new HttpException(
+      'A user with this email already exists',
+      HttpStatus.BAD_REQUEST,
+    );
+
     const validatedPassword: string = this.validatePassword(userDto.password);
     const hashPassword = await bcrypt.hash(validatedPassword, 5);
     const user: User = await this.userService.createUser({

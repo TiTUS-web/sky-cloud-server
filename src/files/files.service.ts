@@ -8,14 +8,15 @@ import {
 import { File } from './files.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../users/users.model';
-const fs = require('fs');
 import fileUpload from 'express-fileupload';
+
+const fs = require('fs');
 
 @Injectable()
 export class FilesService {
   constructor(@InjectModel(File) private fileRepository: typeof File) {}
 
-  async createDir(dto: CreateDirDto): Promise<void> {
+  async createDir(dto: CreateDirDto): Promise<File> {
     const { id, name, type, format, path, access, userId, parentId } = dto;
     const file: File = new File({
       id,
@@ -37,7 +38,7 @@ export class FilesService {
     }
 
     await file.save();
-    await this.uploadFile(file.id);
+    return await this.uploadFile(file.id);
   }
 
   async getFiles(): Promise<File[]> {
@@ -57,7 +58,7 @@ export class FilesService {
     }
 
     user.usedSpace = user.usedSpace + file.size;
-    const path: string = this.getPath(file.path);
+    const path: string = this.getPath(file.userId, file.path);
 
     if (fs.existsSync(path)) {
       throw new HttpException('File already exist', HttpStatus.BAD_REQUEST);
@@ -74,7 +75,7 @@ export class FilesService {
   async deleteFile(id: number): Promise<string> {
     const file: File = await File.findOne({ where: { id: id } });
 
-    const path: string = this.getPath(file.path);
+    const path: string = this.getPath(file.userId, file.path);
 
     if (file.type === 'dir') {
       fs.rmdirSync(path);
@@ -89,8 +90,8 @@ export class FilesService {
     return file.name;
   }
 
-  private getPath(path: string): string {
-    return `files/${path}`;
+  private getPath(userId: number, path: string): string {
+    return `files/USER ${userId}${path}`;
   }
 
   private async checkExistingDirectory(sFilename: string): Promise<File> {
