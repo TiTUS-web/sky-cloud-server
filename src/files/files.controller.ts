@@ -22,9 +22,9 @@ export class FilesController {
     });
   }
 
-  @Get()
-  getFiles() {
-    return this.filesService.getFiles().catch((err) => {
+  @Get('/:id')
+  getFiles(@Param() param) {
+    return this.filesService.getFiles(param.id).catch((err) => {
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }

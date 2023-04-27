@@ -41,8 +41,10 @@ export class FilesService {
     return await this.uploadFile(file.id);
   }
 
-  async getFiles(): Promise<File[]> {
-    const files: File[] = await this.fileRepository.findAll();
+  async getFiles(userId: number): Promise<File[]> {
+    const files: File[] = await this.fileRepository.findAll({
+      where: { userId: userId },
+    });
     return files;
   }
 
