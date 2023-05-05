@@ -41,10 +41,16 @@ export class FilesService {
     return await this.uploadFile(file.id);
   }
 
-  async getFiles(userId: number): Promise<File[]> {
+  async getFiles(
+    userId: number,
+    parentId: string = null,
+    sort: string = null,
+  ): Promise<File[]> {
     const files: File[] = await this.fileRepository.findAll({
-      where: { userId: userId },
+      where: { userId: userId, parentId: parentId },
+      order: this.getOrderSort(sort) as any,
     });
+
     return files;
   }
 
@@ -102,5 +108,24 @@ export class FilesService {
     });
 
     return file;
+  }
+
+  private getOrderSort(sort: string): string[][] {
+    if (!sort) return null;
+
+    const oSort: object = sort
+      .split(',')
+      .reduce((result: object, sort: string) => {
+        const [key, value] = sort.split(':');
+        result[key] = value;
+
+        return result;
+      }, {});
+
+    const arSort: string[][] = Object.entries(oSort).map(
+      ([key, value]: string[]) => [key, value],
+    );
+
+    return arSort;
   }
 }

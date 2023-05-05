@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateDirDto } from './dto/create-dir.dto';
 import { FilesService } from './files.service';
@@ -23,8 +24,11 @@ export class FilesController {
   }
 
   @Get('/:id')
-  getFiles(@Param() param) {
-    return this.filesService.getFiles(param.id).catch((err) => {
+  getFiles(@Param() param, @Query() query: { parent: string; sort: string }) {
+    const { parent, sort } = query;
+
+    return this.filesService.getFiles(param.id, parent, sort).catch((err) => {
+      console.log(err);
       throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }
