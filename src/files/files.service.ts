@@ -31,6 +31,7 @@ export class FilesService {
 
     const existingDirectory: File = await this.checkExistingDirectory(
       file.name,
+      file.parentId,
     );
 
     if (existingDirectory) {
@@ -86,7 +87,7 @@ export class FilesService {
     const path: string = this.getPath(file.userId, file.path);
 
     if (file.type === 'dir') {
-      fs.rmdirSync(path);
+      await this.deleteFolderRecursive(path);
     } else {
       fs.unlinkSync(path);
     }
@@ -98,13 +99,32 @@ export class FilesService {
     return file.name;
   }
 
+  private async deleteFolderRecursive(path: string): Promise<void> {
+    if (fs.existsSync(path)) {
+      fs.readdirSync(path).forEach((fileName: string) => {
+        const currentPath = `${path}/${fileName}`;
+
+        if (fs.statSync(currentPath).isDirectory()) {
+          this.deleteFolderRecursive(currentPath);
+        } else {
+          fs.unlinkSync(path);
+        }
+      });
+
+      fs.rmdirSync(path);
+    }
+  }
+
   private getPath(userId: number, path: string): string {
     return `files/USER ${userId}${path}`;
   }
 
-  private async checkExistingDirectory(sFilename: string): Promise<File> {
+  private async checkExistingDirectory(
+    sFilename: string,
+    iFileParentId: number,
+  ): Promise<File> {
     const file: File = await File.findOne({
-      where: { name: sFilename },
+      where: { name: sFilename, parentId: iFileParentId },
     });
 
     return file;
